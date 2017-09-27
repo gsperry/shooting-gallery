@@ -38,3 +38,13 @@ server.listen(app.get("port"), function() {
 let rtsWsApi = require("./app/ws-api")(primus, winston);
 
 app.use("/api", require("./app/rest-api")(winston, rtsWsApi));
+
+let Gpio = require("pigpio").Gpio;
+let button = Gpio(4, {
+    mode: Gpio.INPUT,
+    pullUpDown: Gpio.PUD_DOWN,
+    edge: Gpio.EITHER_EDGE
+});
+button.on("interrupt", function(level) {
+    winston.info("IR sensed: " + level.toString());
+});

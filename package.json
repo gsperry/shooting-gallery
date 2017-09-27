@@ -34,9 +34,7 @@
     "karma-coverage": "^1.1.1",
     "karma-jasmine": "^1.1.0",
     "karma-junit-reporter": "^1.2.0",
-    "karma-phantomjs-launcher": "^1.0.4",
     "karma-requirejs": "^1.1.0",
-    "phantomjs-prebuilt": "^2.1.14",
     "require-dir": "^0.3.1",
     "run-sequence": "^1.2.2"
   },
@@ -46,7 +44,7 @@
     "express": "^4.15.2",
     "http": "0.0.0",
     "path": "^0.12.7",
-    "phantomjs-prebuilt": "^2.1.14",
+    "pigpio": "^0.6.2",
     "primus": "^7.0.0",
     "serve-favicon": "^2.4.2",
     "uuid": "^3.0.1",
