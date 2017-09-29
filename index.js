@@ -1,13 +1,17 @@
 /* global __dirname, require, process */
 "use strict";
-let winston = require("winston");
-winston.remove(winston.transports.Console);
-winston.add(winston.transports.Console, {colorize: true});
+let logger = require("winston");
+let config = require("config");
+logger.setLevels(config.get("shoot.log.levels"));
+logger.addColors(config.get("shoot.log.colors"));
+logger.level = config.get("shoot.log.level");
+logger.remove(logger.transports.Console);
+logger.add(logger.transports.Console, {colorize: true});
 
 // Sometimes things go awry.
 process.on("uncaughtException", function(err) {
-    winston.emergency("uncaughtException:", err.message);
-    winston.emergency(err.stack);
+    logger.emergency("uncaughtException:", err.message);
+    logger.emergency(err.stack);
     process.exit(1);
 });
 
@@ -32,19 +36,23 @@ let transformer = "websockets";
 let primus = new Primus(server, {transformer: transformer});
 
 server.listen(app.get("port"), function() {
-    winston.info("Express server listening on port " + app.get("port"));
+    logger.info("Express server listening on port " + app.get("port"));
 });
 
-let rtsWsApi = require("./app/ws-api")(primus, winston);
+let rtsWsApi = require("./app/ws-api")(primus, logger);
 
-app.use("/api", require("./app/rest-api")(winston, rtsWsApi));
+app.use("/api", require("./app/rest-api")(logger, rtsWsApi));
 
 let Gpio = require("pigpio").Gpio;
-let button = Gpio(4, {
-    mode: Gpio.INPUT,
-    pullUpDown: Gpio.PUD_DOWN,
-    edge: Gpio.EITHER_EDGE
-});
-button.on("interrupt", function(level) {
-    winston.info("IR sensed: " + level.toString());
+let targets = config.get("shoot.targets");
+targets.forEach(function(t) {
+    t.trigger = Gpio(t.pin, {
+        mode: Gpio.INPUT,
+        pullUpDown: Gpio.PUD_DOWN,
+        edge: Gpio.EITHER_EDGE
+    });
+    t.trigger.on("interrupt", function(level) {
+        logger.info("Hit on target: " + t.name);
+        hit(t.name, level);
+    });
 });
