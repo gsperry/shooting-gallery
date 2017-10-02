@@ -39,13 +39,27 @@ server.listen(app.get("port"), function() {
     logger.info("Express server listening on port " + app.get("port"));
 });
 
-let rtsWsApi = require("./app/ws-api")(primus, logger);
+let wsApi = require("./app/ws-api")(primus, logger);
 
-app.use("/api", require("./app/rest-api")(logger, rtsWsApi));
+app.use("/api", require("./app/rest-api")(logger, wsApi));
+
+let servos = require("./app/servo-api.js")(logger);
+
+servos.listPorts();
+
+
 
 let Gpio = require("pigpio").Gpio;
-let targets = config.get("shoot.targets");
-targets.forEach(function(t) {
+let targetManager = {
+    targets: config.get("shoot.targets"),
+    hit: function(target, level) {
+        target.level = level;
+        if(level === 0) {
+            wsApi.hit(t.name);
+        }
+    }
+};
+targetManager.targets.forEach(function(t) {
     t.trigger = Gpio(t.pin, {
         mode: Gpio.INPUT,
         pullUpDown: Gpio.PUD_DOWN,
@@ -53,6 +67,6 @@ targets.forEach(function(t) {
     });
     t.trigger.on("interrupt", function(level) {
         logger.info("Hit on target: " + t.name);
-        hit(t.name, level);
+        hit(t, level);
     });
 });

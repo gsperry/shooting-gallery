@@ -3,7 +3,7 @@ shoot:
         - name: Groot
           pin: 4
     log:
-        level: debug,
+        level: debug
         levels: 
             emergency: 0
             error: 3
