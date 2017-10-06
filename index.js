@@ -44,11 +44,6 @@ let wsApi = require("./app/ws-api")(primus, logger);
 app.use("/api", require("./app/rest-api")(logger, wsApi));
 
 let servos = require("./app/servo-api.js")(logger);
-
-servos.listPorts();
-
-
-
 let Gpio = require("pigpio").Gpio;
 let targetManager = {
     targets: config.get("shoot.targets"),
@@ -59,14 +54,34 @@ let targetManager = {
         }
     }
 };
-targetManager.targets.forEach(function(t) {
-    t.trigger = Gpio(t.pin, {
-        mode: Gpio.INPUT,
-        pullUpDown: Gpio.PUD_DOWN,
-        edge: Gpio.EITHER_EDGE
-    });
-    t.trigger.on("interrupt", function(level) {
-        logger.info("Hit on target: " + t.name);
-        hit(t, level);
+
+servos.listPorts().then(function() {
+    servos.init().then(function() {
+        targetManager.targets.forEach(function(t) {
+            t.trigger = Gpio(t.pin, {
+                mode: Gpio.INPUT,
+                pullUpDown: Gpio.PUD_DOWN,
+                edge: Gpio.EITHER_EDGE
+            });
+            t.trigger.on("interrupt", function(level) {
+                logger.info("Hit on target: " + t.name);
+                hit(t, level);
+            });
+            servos.write(t.channel, 24000).then(function() {
+                servos.close();
+            });
+        });
+        /*servos.write(0x2, 4000).then(function() {
+            setTimeout(function() {
+                servos.write(0x2, 8000).then(function() {
+
+                }, function(err) {
+                    logger.error(err);
+                });
+            }, 500);
+        }, function(err){
+            logger.error(err);
+        });*/
     });
 });
+

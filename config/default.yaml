@@ -2,6 +2,7 @@ shoot:
     targets:
         - name: Groot
           pin: 4
+          channel: 0x2
     log:
         level: debug
         levels: 
