@@ -32,7 +32,7 @@ function write(channel, position) {
         // setup buffer, 4 byte, byte array.
         let buffer = []; 
         buffer.push(0x84);  // Compact Protocol
-        buffer.push(0x2);  // Channel Number
+        buffer.push(channel);  // Channel Number
         buffer.push(position & 0x7f);  // Target
         buffer.push((position >>> 7) & 0x7f);  // Target
         logger.debug(buffer);

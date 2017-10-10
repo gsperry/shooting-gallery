@@ -3,6 +3,9 @@ shoot:
         - name: Groot
           pin: 4
           channel: 0x2
+        - name: Red
+          pin: 5
+          channel: 0x1
     log:
         level: debug
         levels: 

@@ -46,42 +46,43 @@ app.use("/api", require("./app/rest-api")(logger, wsApi));
 let servos = require("./app/servo-api.js")(logger);
 let Gpio = require("pigpio").Gpio;
 let targetManager = {
-    targets: config.get("shoot.targets"),
-    hit: function(target, level) {
-        target.level = level;
-        if(level === 0) {
-            wsApi.hit(t.name);
-        }
-    }
+    targets: config.get("shoot.targets")
 };
 
 servos.listPorts().then(function() {
     servos.init().then(function() {
+        let setupServos = [];
         targetManager.targets.forEach(function(t) {
-            t.trigger = Gpio(t.pin, {
+            let target = t;
+            target.active = false;
+            setupServos.push(servos.write(target.channel, 9000));
+            target.trigger = Gpio(target.pin, {
                 mode: Gpio.INPUT,
                 pullUpDown: Gpio.PUD_DOWN,
                 edge: Gpio.EITHER_EDGE
             });
-            t.trigger.on("interrupt", function(level) {
-                logger.info("Hit on target: " + t.name);
-                hit(t, level);
-            });
-            servos.write(t.channel, 24000).then(function() {
-                servos.close();
+            target.trigger.on("interrupt", function(level) {
+                logger.info("Hit on target: " + target.name);
+                if(target.active === true && level === 0) {
+                    servos.write(target.channel, 9000)
+                    wsApi.hit(target.name);
+                }
             });
         });
-        /*servos.write(0x2, 4000).then(function() {
-            setTimeout(function() {
-                servos.write(0x2, 8000).then(function() {
-
-                }, function(err) {
-                    logger.error(err);
-                });
-            }, 500);
-        }, function(err){
-            logger.error(err);
-        });*/
+        Promise.all(setupServos).then(setTimeout(activateTarget, 3000));
     });
 });
+
+function activateTarget() {
+    let target = targetManager.targets[Math.floor(Math.random() * targetManager.targets.length)];
+    if(target.active === false) {
+        servos.write(target.channel, 800).then(function() {
+            target.active = true;
+            setTimeout(activateTarget, 3000);
+        });
+    } else {
+        setTimeout(activateTarget, 3000);
+    }
+}
+
 
