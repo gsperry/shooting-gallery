@@ -1,5 +1,9 @@
 /* global __dirname, require, process */
 "use strict";
+const SERVO_UP = 800;
+const SERVO_DOWN = 9000;
+const INTERVAL = 1500;
+
 let logger = require("winston");
 let config = require("config");
 logger.setLevels(config.get("shoot.log.levels"));
@@ -55,7 +59,7 @@ servos.listPorts().then(function() {
         targetManager.targets.forEach(function(t) {
             let target = t;
             target.active = false;
-            setupServos.push(servos.write(target.channel, 9000));
+            setupServos.push(servos.write(target.channel, SERVO_DOWN));
             target.trigger = Gpio(target.pin, {
                 mode: Gpio.INPUT,
                 pullUpDown: Gpio.PUD_DOWN,
@@ -64,24 +68,27 @@ servos.listPorts().then(function() {
             target.trigger.on("interrupt", function(level) {
                 logger.info("Hit on target: " + target.name);
                 if(target.active === true && level === 0) {
-                    servos.write(target.channel, 9000)
-                    wsApi.hit(target.name);
+                    servos.write(target.channel, SERVO_DOWN).then(function() {
+                        wsApi.hit(target.name).then(function() {
+                            target.active = false;
+                        });
+                    });
                 }
             });
         });
-        Promise.all(setupServos).then(setTimeout(activateTarget, 3000));
+        Promise.all(setupServos).then(setTimeout(activateTarget, INTERVAL));
     });
 });
 
 function activateTarget() {
     let target = targetManager.targets[Math.floor(Math.random() * targetManager.targets.length)];
     if(target.active === false) {
-        servos.write(target.channel, 800).then(function() {
+        servos.write(target.channel, SERVO_UP).then(function() {
             target.active = true;
-            setTimeout(activateTarget, 3000);
+            setTimeout(activateTarget, INTERVAL);
         });
     } else {
-        setTimeout(activateTarget, 3000);
+        setTimeout(activateTarget, INTERVAL);
     }
 }
 

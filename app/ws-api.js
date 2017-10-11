@@ -28,6 +28,12 @@ function setupPrimus(primus) {
     });
 }
 
+function hit(name) {
+    return new Promise(function(fulfill, reject) {
+        fulfill();
+    });
+}
+
 /**
  * Send data message to all connected sparks
  * @param {Message} data - object to send to sparks.
@@ -56,5 +62,6 @@ module.exports = function(primus, log) {
 
     return {
         version: "1.0",
+        hit: hit
     };
 };

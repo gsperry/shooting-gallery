@@ -1,11 +1,17 @@
 shoot:
     targets:
         - name: Groot
-          pin: 4
+          pin: 5
           channel: 0x2
         - name: Red
-          pin: 5
+          pin: 4
           channel: 0x1
+        - name: StarLord
+          pin: 6
+          channel: 0x3
+        - name: Green
+          pin: 7
+          channel: 0x0
     log:
         level: debug
         levels: 
