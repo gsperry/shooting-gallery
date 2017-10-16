@@ -7,7 +7,8 @@ requirejs.config({
         "transitions": "../lib/durandal/js/transitions",
         "knockout": "../lib/knockout/knockout-3.4.0",
         "bootstrap": "../lib/bootstrap/js/bootstrap",
-        "jquery": "../lib/jquery/jquery-1.9.1"
+        "jquery": "../lib/jquery/jquery-1.9.1",
+		"primus": "../lib/primus/primus"
     },
     shim: {
         "bootstrap": {
@@ -36,6 +37,6 @@ define(["durandal/system", "durandal/app", "durandal/viewLocator", "bootstrap"],
         viewLocator.useConvention();
 
         // Show the app by setting the root view model for our application with a transition.
-        app.setRoot("viewmodels/shell", "entrance");
+        app.setRoot("viewmodels/app", "entrance");
     });
 });

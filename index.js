@@ -46,7 +46,7 @@ server.listen(app.get("port"), function() {
 let wsApi = require("./app/ws-api")(primus, logger);
 
 app.use("/api", require("./app/rest-api")(logger, wsApi));
-
+/*
 let servos = require("./app/servo-api.js")(logger);
 let Gpio = require("pigpio").Gpio;
 let targetManager = {
@@ -91,5 +91,5 @@ function activateTarget() {
         setTimeout(activateTarget, INTERVAL);
     }
 }
-
+*/
 

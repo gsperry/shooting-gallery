@@ -1,6 +1,6 @@
 /* eslint no-console: "off" */
-define(["plugins/http", "plugins/observable", "durandal/app"],
-function(http, observable, app) {
+define(["plugins/http", "plugins/observable", "durandal/app", "primus"],
+function(http, observable, app, primus) {
     var ctor = function() {
         this.displayName = "App";
         this.isConnected = false;
