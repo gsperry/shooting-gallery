@@ -1,4 +1,16 @@
-(function(f){var g;if(typeof window!=='undefined'){g=window}else if(typeof self!=='undefined'){g=self}g.Primus=f()})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
+(function UMDish(name, context, definition, plugins) {
+  context[name] = definition.call(context);
+  for (var i = 0; i < plugins.length; i++) {
+    plugins[i](context[name])
+  }
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = context[name];
+  } else if (typeof define === "function" && define.amd) {
+    define(function reference() { return context[name]; });
+  }
+})("Primus", this || {}, function wrapper() {
+  var define, module, exports
+    , Primus = (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
 'use strict';
 
 /**
@@ -623,6 +635,17 @@ module.exports = function one(fn) {
 var has = Object.prototype.hasOwnProperty;
 
 /**
+ * Decode a URI encoded string.
+ *
+ * @param {String} input The URI encoded string.
+ * @returns {String} The decoded string.
+ * @api private
+ */
+function decode(input) {
+  return decodeURIComponent(input.replace(/\+/g, ' '));
+}
+
+/**
  * Simple query string parser.
  *
  * @param {String} query The query string that needs to be parsed.
@@ -641,7 +664,7 @@ function querystring(query) {
   //
   for (;
     part = parser.exec(query);
-    result[decodeURIComponent(part[1])] = decodeURIComponent(part[2])
+    result[decode(part[1])] = decode(part[2])
   );
 
   return result;
@@ -1484,12 +1507,13 @@ Tick.Timer = Timer;
 module.exports = Tick;
 
 },{"millisecond":5}],12:[function(_dereq_,module,exports){
+(function (global){
 'use strict';
 
 var required = _dereq_('requires-port')
-  , lolcation = _dereq_('./lolcation')
   , qs = _dereq_('querystringify')
-  , protocolre = /^([a-z][a-z0-9.+-]*:)?(\/\/)?([\S\s]*)/i;
+  , protocolre = /^([a-z][a-z0-9.+-]*:)?(\/\/)?([\S\s]*)/i
+  , slashes = /^[A-Za-z][A-Za-z0-9+-.]*:\/\//;
 
 /**
  * These are the parse rules for the URL parser, it informs the parser
@@ -1512,6 +1536,54 @@ var rules = [
   [/:(\d+)$/, 'port', undefined, 1],    // RegExp the back.
   [NaN, 'hostname', undefined, 1, 1]    // Set left over.
 ];
+
+/**
+ * These properties should not be copied or inherited from. This is only needed
+ * for all non blob URL's as a blob URL does not include a hash, only the
+ * origin.
+ *
+ * @type {Object}
+ * @private
+ */
+var ignore = { hash: 1, query: 1 };
+
+/**
+ * The location object differs when your code is loaded through a normal page,
+ * Worker or through a worker using a blob. And with the blobble begins the
+ * trouble as the location object will contain the URL of the blob, not the
+ * location of the page where our code is loaded in. The actual origin is
+ * encoded in the `pathname` so we can thankfully generate a good "default"
+ * location from it so we can generate proper relative URL's again.
+ *
+ * @param {Object|String} loc Optional default location object.
+ * @returns {Object} lolcation object.
+ * @api public
+ */
+function lolcation(loc) {
+  loc = loc || global.location || {};
+
+  var finaldestination = {}
+    , type = typeof loc
+    , key;
+
+  if ('blob:' === loc.protocol) {
+    finaldestination = new URL(unescape(loc.pathname), {});
+  } else if ('string' === type) {
+    finaldestination = new URL(loc, {});
+    for (key in ignore) delete finaldestination[key];
+  } else if ('object' === type) {
+    for (key in loc) {
+      if (key in ignore) continue;
+      finaldestination[key] = loc[key];
+    }
+
+    if (finaldestination.slashes === undefined) {
+      finaldestination.slashes = slashes.test(loc.href);
+    }
+  }
+
+  return finaldestination;
+}
 
 /**
  * @typedef ProtocolExtract
@@ -1646,7 +1718,7 @@ function URL(address, location, parser) {
           address = address.slice(0, index);
         }
       }
-    } else if (index = parse.exec(address)) {
+    } else if ((index = parse.exec(address))) {
       url[key] = index[1];
       address = address.slice(0, index.index);
     }
@@ -1724,7 +1796,7 @@ function URL(address, location, parser) {
  * @returns {URL}
  * @api public
  */
-URL.prototype.set = function set(part, value, fn) {
+function set(part, value, fn) {
   var url = this;
 
   switch (part) {
@@ -1796,7 +1868,7 @@ URL.prototype.set = function set(part, value, fn) {
   url.href = url.toString();
 
   return url;
-};
+}
 
 /**
  * Transform the properties back in to a valid and full URL string.
@@ -1805,7 +1877,7 @@ URL.prototype.set = function set(part, value, fn) {
  * @returns {String}
  * @api public
  */
-URL.prototype.toString = function toString(stringify) {
+function toString(stringify) {
   if (!stringify || 'function' !== typeof stringify) stringify = qs.stringify;
 
   var query
@@ -1830,7 +1902,9 @@ URL.prototype.toString = function toString(stringify) {
   if (url.hash) result += url.hash;
 
   return result;
-};
+}
+
+URL.prototype = { set: set, toString: toString };
 
 //
 // Expose the URL parser and some additional properties that might be useful for
@@ -1842,64 +1916,8 @@ URL.qs = qs;
 
 module.exports = URL;
 
-},{"./lolcation":13,"querystringify":7,"requires-port":10}],13:[function(_dereq_,module,exports){
-(function (global){
-'use strict';
-
-var slashes = /^[A-Za-z][A-Za-z0-9+-.]*:\/\//;
-
-/**
- * These properties should not be copied or inherited from. This is only needed
- * for all non blob URL's as a blob URL does not include a hash, only the
- * origin.
- *
- * @type {Object}
- * @private
- */
-var ignore = { hash: 1, query: 1 }
-  , URL;
-
-/**
- * The location object differs when your code is loaded through a normal page,
- * Worker or through a worker using a blob. And with the blobble begins the
- * trouble as the location object will contain the URL of the blob, not the
- * location of the page where our code is loaded in. The actual origin is
- * encoded in the `pathname` so we can thankfully generate a good "default"
- * location from it so we can generate proper relative URL's again.
- *
- * @param {Object|String} loc Optional default location object.
- * @returns {Object} lolcation object.
- * @api public
- */
-module.exports = function lolcation(loc) {
-  loc = loc || global.location || {};
-  URL = URL || _dereq_('./');
-
-  var finaldestination = {}
-    , type = typeof loc
-    , key;
-
-  if ('blob:' === loc.protocol) {
-    finaldestination = new URL(unescape(loc.pathname), {});
-  } else if ('string' === type) {
-    finaldestination = new URL(loc, {});
-    for (key in ignore) delete finaldestination[key];
-  } else if ('object' === type) {
-    for (key in loc) {
-      if (key in ignore) continue;
-      finaldestination[key] = loc[key];
-    }
-
-    if (finaldestination.slashes === undefined) {
-      finaldestination.slashes = slashes.test(loc.href);
-    }
-  }
-
-  return finaldestination;
-};
-
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./":12}],14:[function(_dereq_,module,exports){
+},{"querystringify":7,"requires-port":10}],13:[function(_dereq_,module,exports){
 'use strict';
 
 var alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_'.split('')
@@ -1969,7 +1987,7 @@ yeast.encode = encode;
 yeast.decode = decode;
 module.exports = yeast;
 
-},{}],15:[function(_dereq_,module,exports){
+},{}],14:[function(_dereq_,module,exports){
 /*globals require, define */
 'use strict';
 
@@ -2029,8 +2047,7 @@ try {
  * - manual, don't automatically call `.open` to start the connection.
  * - websockets, force the use of WebSockets, even when you should avoid them.
  * - timeout, connect timeout, server didn't respond in a timely manner.
- * - ping, The heartbeat interval for sending a ping packet to the server.
- * - pong, The heartbeat timeout for receiving a response to the ping.
+ * - pingTimeout, The maximum amount of time to wait for the server to send a ping.
  * - network, Use network events as leading method for network connection drops.
  * - strategy, Reconnection strategies.
  * - transport, Transport options.
@@ -2047,9 +2064,10 @@ function Primus(url, options) {
   Primus.Stream.call(this);
 
   if ('function' !== typeof this.client) {
-    var message = 'The client library has not been compiled correctly, ' +
-      'see https://github.com/primus/primus#client-library for more details';
-    return this.critical(new Error(message));
+    return this.critical(new Error(
+      'The client library has not been compiled correctly, see '+
+      'https://github.com/primus/primus#client-library for more details'
+    ));
   }
 
   if ('object' === typeof url) {
@@ -2057,6 +2075,12 @@ function Primus(url, options) {
     url = options.url || options.uri || defaultUrl;
   } else {
     options = options || {};
+  }
+
+  if ('ping' in options || 'pong' in options) {
+    return this.critical(new Error(
+      'The `ping` and `pong` options have been removed'
+    ));
   }
 
   var primus = this;
@@ -2071,10 +2095,7 @@ function Primus(url, options) {
   options.reconnect = 'reconnect' in options ? options.reconnect : {};
 
   // Heartbeat ping interval.
-  options.ping = 'ping' in options ? options.ping : 25e3;
-
-  // Heartbeat pong response timeout.
-  options.pong = 'pong' in options ? options.pong : 10e3;
+  options.pingTimeout = 'pingTimeout' in options ? options.pingTimeout : 45000;
 
   // Reconnect strategies.
   options.strategy = 'strategy' in options ? options.strategy : [];
@@ -2090,7 +2111,6 @@ function Primus(url, options) {
   primus.options = options;                     // Reference to the supplied options.
   primus.timers = new TickTock(this);           // Contains all our timers.
   primus.socket = null;                         // Reference to the internal connection.
-  primus.latency = 0;                           // Latency between messages.
   primus.disconnect = false;                    // Did we receive a disconnect packet?
   primus.transport = options.transport;         // Transport options.
   primus.transformers = {                       // Message transformers.
@@ -2111,7 +2131,7 @@ function Primus(url, options) {
   // - online: Reconnect when we're back online.
   //
   if ('string' === typeof options.strategy) {
-    options.strategy = options.strategy.split(/\s?\,\s?/g);
+    options.strategy = options.strategy.split(/\s?,\s?/g);
   }
 
   if (false === options.strategy) {
@@ -2314,8 +2334,7 @@ Primus.prototype.reserved.events = {
  * @api private
  */
 Primus.prototype.initialise = function initialise(options) {
-  var primus = this
-    , start;
+  var primus = this;
 
   primus.recovery
   .on('reconnected', primus.emits('reconnected'))
@@ -2337,8 +2356,6 @@ Primus.prototype.initialise = function initialise(options) {
     if (readyState !== primus.readyState) {
       primus.emit('readyStateChange', 'opening');
     }
-
-    start = +new Date();
   });
 
   primus.on('incoming::open', function opened() {
@@ -2369,8 +2386,6 @@ Primus.prototype.initialise = function initialise(options) {
       primus.emit('readyStateChange', 'open');
     }
 
-    primus.latency = +new Date() - start;
-    primus.timers.clear('ping', 'pong');
     primus.heartbeat();
 
     if (primus.buffer.length) {
@@ -2388,12 +2403,11 @@ Primus.prototype.initialise = function initialise(options) {
     primus.emit('open');
   });
 
-  primus.on('incoming::pong', function pong(time) {
+  primus.on('incoming::ping', function ping(time) {
     primus.online = true;
-    primus.timers.clear('pong');
     primus.heartbeat();
-
-    primus.latency = (+new Date()) - time;
+    primus.emit('outgoing::pong', time);
+    primus._write('primus::pong::'+ time);
   });
 
   primus.on('incoming::error', function error(e) {
@@ -2597,9 +2611,9 @@ Primus.prototype.protocol = function protocol(msg) {
     , value = msg.slice(last + 2);
 
   switch (msg.slice(8,  last)) {
-    case 'pong':
-      this.emit('incoming::pong', +value);
-    break;
+    case 'ping':
+      this.emit('incoming::ping', +value);
+      break;
 
     case 'server':
       //
@@ -2609,11 +2623,11 @@ Primus.prototype.protocol = function protocol(msg) {
       if ('close' === value) {
         this.disconnect = true;
       }
-    break;
+      break;
 
     case 'id':
       this.emit('incoming::id', value);
-    break;
+      break;
 
     //
     // Unknown protocol, somebody is probably sending `primus::` prefixed
@@ -2795,51 +2809,26 @@ Primus.prototype._write = function write(data) {
 };
 
 /**
- * Send a new heartbeat over the connection to ensure that we're still
- * connected and our internet connection didn't drop. We cannot use server side
- * heartbeats for this unfortunately.
+ * Set a timer that, upon expiration, closes the client.
  *
  * @returns {Primus}
  * @api private
  */
 Primus.prototype.heartbeat = function heartbeat() {
-  var primus = this;
+  if (!this.options.pingTimeout) return this;
 
-  if (!primus.options.ping) return primus;
-
-  /**
-   * Exterminate the connection as we've timed out.
-   *
-   * @api private
-   */
-  function pong() {
-    primus.timers.clear('pong');
-
+  this.timers.clear('heartbeat');
+  this.timers.setTimeout('heartbeat', function expired() {
     //
     // The network events already captured the offline event.
     //
-    if (!primus.online) return;
+    if (!this.online) return;
 
-    primus.online = false;
-    primus.emit('offline');
-    primus.emit('incoming::end');
-  }
+    this.online = false;
+    this.emit('offline');
+    this.emit('incoming::end');
+  }, this.options.pingTimeout);
 
-  /**
-   * We should send a ping message to the server.
-   *
-   * @api private
-   */
-  function ping() {
-    var value = +new Date();
-
-    primus.timers.clear('ping');
-    primus._write('primus::ping::'+ value);
-    primus.emit('outgoing::ping', value);
-    primus.timers.setTimeout('pong', pong, primus.options.pong);
-  }
-
-  primus.timers.setTimeout('ping', ping, primus.options.ping);
   return this;
 };
 
@@ -3052,11 +3041,6 @@ Primus.prototype.uri = function uri(options) {
     : +url.port || (options.secure ? 443 : 80);
 
   //
-  // Allow transformation of the options before we construct a full URL from it.
-  //
-  this.emit('outgoing::url', options);
-
-  //
   // We need to make sure that we create a unique connection URL every time to
   // prevent back forward cache from becoming an issue. We're doing this by
   // forcing an cache busting query string in to the URL.
@@ -3064,6 +3048,11 @@ Primus.prototype.uri = function uri(options) {
   var querystring = this.querystring(options.query || '');
   querystring._primuscb = yeast();
   options.query = this.querystringify(querystring);
+
+  //
+  // Allow transformation of the options before we construct a full URL from it.
+  //
+  this.emit('outgoing::url', options);
 
   //
   // Automatically suffix the protocol so we can supply `ws:` and `http:` and
@@ -3119,10 +3108,7 @@ Primus.prototype.transform = function transform(type, fn) {
  * @api private
  */
 Primus.prototype.critical = function critical(err) {
-  if (this.listeners('error').length) {
-    this.emit('error', err);
-    return this;
-  }
+  if (this.emit('error', err)) return this;
 
   throw err;
 };
@@ -3149,12 +3135,124 @@ Primus.EventEmitter = EventEmitter;
 // These libraries are automatically inserted at the server-side using the
 // Primus#library method.
 //
-Primus.prototype.client = null; // @import {primus::client};
-Primus.prototype.authorization = null; // @import {primus::auth};
-Primus.prototype.pathname = null; // @import {primus::pathname};
-Primus.prototype.encoder = null; // @import {primus::encoder};
-Primus.prototype.decoder = null; // @import {primus::decoder};
-Primus.prototype.version = null; // @import {primus::version};
+Primus.prototype.client = function client() {
+  var primus = this
+    , socket;
+
+  //
+  // Select an available WebSocket factory.
+  //
+  var Factory = (function factory() {
+    if ('undefined' !== typeof WebSocket) return WebSocket;
+    if ('undefined' !== typeof MozWebSocket) return MozWebSocket;
+
+    try { return Primus.requires('ws'); }
+    catch (e) {}
+
+    return undefined;
+  })();
+
+  if (!Factory) return primus.critical(new Error(
+    'Missing required `ws` module. Please run `npm install --save ws`'
+  ));
+
+  //
+  // Connect to the given URL.
+  //
+  primus.on('outgoing::open', function opening() {
+    primus.emit('outgoing::end');
+
+    //
+    // FireFox will throw an error when we try to establish a connection from
+    // a secure page to an unsecured WebSocket connection. This is inconsistent
+    // behaviour between different browsers. This should ideally be solved in
+    // Primus when we connect.
+    //
+    try {
+      var options = {
+        protocol: primus.url.protocol === 'ws+unix:' ? 'ws+unix:' : 'ws:',
+        query: true
+      };
+
+      //
+      // Only allow primus.transport object in Node.js, it will throw in
+      // browsers with a TypeError if we supply to much arguments.
+      //
+      if (Factory.length === 3) {
+        if ('ws+unix:' === options.protocol) {
+          options.pathname = primus.url.pathname +':'+ primus.pathname;
+        }
+        primus.socket = socket = new Factory(
+          primus.uri(options),  // URL
+          [],                   // Sub protocols
+          primus.transport      // options.
+        );
+      } else {
+        primus.socket = socket = new Factory(primus.uri(options));
+        socket.binaryType = 'arraybuffer';
+      }
+    } catch (e) { return primus.emit('error', e); }
+
+    //
+    // Setup the Event handlers.
+    //
+    socket.onopen = primus.emits('incoming::open');
+    socket.onerror = primus.emits('incoming::error');
+    socket.onclose = primus.emits('incoming::end');
+    socket.onmessage = primus.emits('incoming::data', function parse(next, evt) {
+      next(undefined, evt.data);
+    });
+  });
+
+  //
+  // We need to write a new message to the socket.
+  //
+  primus.on('outgoing::data', function write(message) {
+    if (!socket || socket.readyState !== Factory.OPEN) return;
+
+    try { socket.send(message); }
+    catch (e) { primus.emit('incoming::error', e); }
+  });
+
+  //
+  // Attempt to reconnect the socket.
+  //
+  primus.on('outgoing::reconnect', function reconnect() {
+    primus.emit('outgoing::open');
+  });
+
+  //
+  // We need to close the socket.
+  //
+  primus.on('outgoing::end', function close() {
+    if (!socket) return;
+
+    socket.onerror = socket.onopen = socket.onclose = socket.onmessage = function () {};
+    socket.close();
+    socket = null;
+  });
+};
+Primus.prototype.authorization = false;
+Primus.prototype.pathname = "/primus";
+Primus.prototype.encoder = function encoder(data, fn) {
+  var err;
+
+  try { data = JSON.stringify(data); }
+  catch (e) { err = e; }
+
+  fn(err, data);
+};
+Primus.prototype.decoder = function decoder(data, fn) {
+  var err;
+
+  if ('string' !== typeof data) return fn(err, data);
+
+  try { data = JSON.parse(data); }
+  catch (e) { err = e; }
+
+  fn(err, data);
+};
+Primus.prototype.version = "7.1.0";
 
 if (
      'undefined' !== typeof document
@@ -3186,7 +3284,7 @@ if (
   // lower then 5.1.4
   //
   var ua = (navigator.userAgent || '').toLowerCase()
-    , parsed = ua.match(/.+(?:rv|it|ra|ie)[\/: ](\d+)\.(\d+)(?:\.(\d+))?/) || []
+    , parsed = ua.match(/.+(?:rv|it|ra|ie)[/: ](\d+)\.(\d+)(?:\.(\d+))?/) || []
     , version = +[parsed[1], parsed[2]].join('.');
 
   if (
@@ -3203,5 +3301,9 @@ if (
 //
 module.exports = Primus;
 
-},{"demolish":1,"emits":2,"eventemitter3":3,"inherits":4,"querystringify":7,"recovery":8,"tick-tock":11,"url-parse":12,"yeast":14}]},{},[15])(15)
-});
+},{"demolish":1,"emits":2,"eventemitter3":3,"inherits":4,"querystringify":7,"recovery":8,"tick-tock":11,"url-parse":12,"yeast":13}]},{},[14])(14);
+  return Primus;
+},
+[
+
+]);

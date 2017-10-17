@@ -38,7 +38,8 @@ app.use(express.static(path.join(__dirname, "client")));
 let server = http.createServer(app);
 let transformer = "websockets";
 let primus = new Primus(server, {transformer: transformer});
-
+primus.library();
+primus.save(__dirname +'/client/lib/primus/primus.js');
 server.listen(app.get("port"), function() {
     logger.info("Express server listening on port " + app.get("port"));
 });
@@ -46,50 +47,52 @@ server.listen(app.get("port"), function() {
 let wsApi = require("./app/ws-api")(primus, logger);
 
 app.use("/api", require("./app/rest-api")(logger, wsApi));
-/*
-let servos = require("./app/servo-api.js")(logger);
-let Gpio = require("pigpio").Gpio;
-let targetManager = {
-    targets: config.get("shoot.targets")
-};
 
-servos.listPorts().then(function() {
-    servos.init().then(function() {
-        let setupServos = [];
-        targetManager.targets.forEach(function(t) {
-            let target = t;
-            target.active = false;
-            setupServos.push(servos.write(target.channel, SERVO_DOWN));
-            target.trigger = Gpio(target.pin, {
-                mode: Gpio.INPUT,
-                pullUpDown: Gpio.PUD_DOWN,
-                edge: Gpio.EITHER_EDGE
-            });
-            target.trigger.on("interrupt", function(level) {
-                logger.info("Hit on target: " + target.name);
-                if(target.active === true && level === 0) {
-                    servos.write(target.channel, SERVO_DOWN).then(function() {
-                        wsApi.hit(target.name).then(function() {
-                            target.active = false;
+if(config.get("shoot.useHardware") === true) {
+    let servos = require("./app/servo-api.js")(logger);
+    let Gpio = require("pigpio").Gpio;
+    let targetManager = {
+        targets: config.get("shoot.targets")
+    };
+    
+    servos.listPorts().then(function() {
+        servos.init().then(function() {
+            let setupServos = [];
+            targetManager.targets.forEach(function(t) {
+                let target = t;
+                target.active = false;
+                setupServos.push(servos.write(target.channel, SERVO_DOWN));
+                target.trigger = Gpio(target.pin, {
+                    mode: Gpio.INPUT,
+                    pullUpDown: Gpio.PUD_DOWN,
+                    edge: Gpio.EITHER_EDGE
+                });
+                target.trigger.on("interrupt", function(level) {
+                    logger.info("Hit on target: " + target.name);
+                    if(target.active === true && level === 0) {
+                        servos.write(target.channel, SERVO_DOWN).then(function() {
+                            wsApi.hit(target.name).then(function() {
+                                target.active = false;
+                            });
                         });
-                    });
-                }
+                    }
+                });
             });
+            Promise.all(setupServos).then(setTimeout(activateTarget, INTERVAL));
         });
-        Promise.all(setupServos).then(setTimeout(activateTarget, INTERVAL));
     });
-});
-
-function activateTarget() {
-    let target = targetManager.targets[Math.floor(Math.random() * targetManager.targets.length)];
-    if(target.active === false) {
-        servos.write(target.channel, SERVO_UP).then(function() {
-            target.active = true;
+    
+    function activateTarget() {
+        let target = targetManager.targets[Math.floor(Math.random() * targetManager.targets.length)];
+        if(target.active === false) {
+            servos.write(target.channel, SERVO_UP).then(function() {
+                target.active = true;
+                setTimeout(activateTarget, INTERVAL);
+            });
+        } else {
             setTimeout(activateTarget, INTERVAL);
-        });
-    } else {
-        setTimeout(activateTarget, INTERVAL);
+        }
     }
 }
-*/
+
 

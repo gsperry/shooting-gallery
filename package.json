@@ -50,6 +50,7 @@
     "serialport": "^5.0.0",
     "serve-favicon": "^2.4.2",
     "uuid": "^3.0.1",
-    "winston": "^2.3.1"
+    "winston": "^2.3.1",
+    "ws": "^3.2.0"
   }
 }

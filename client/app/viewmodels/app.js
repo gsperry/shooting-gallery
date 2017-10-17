@@ -19,7 +19,7 @@ function(http, observable, app, primus) {
                 this.primus.on("open", function() {
                     console.log("Connection established.");
                     this.isConnected = true;
-                }.bind(vm));
+                }.bind(this));
                 this.primus.on("reconnect timeout", function(err, opts) {
                     console.log("Timeout expired: %s", err.message);
                 });
@@ -31,7 +31,7 @@ function(http, observable, app, primus) {
                     console.log("Reconnected.", err.message);
                     this.isConnected = true;
                 }.bind(this));
-                vm.primus.on("end", function() {
+                this.primus.on("end", function() {
                     console.log("Connection ended.");
                     this.isConnected = false;
                 }.bind(this));

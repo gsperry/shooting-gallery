@@ -1,4 +1,5 @@
 shoot:
+    useHardware: false
     targets:
         - name: Groot
           pin: 5
