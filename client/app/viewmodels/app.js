@@ -1,16 +1,27 @@
 /* eslint no-console: "off" */
 define(["plugins/http", "plugins/observable", "durandal/app", "primus"],
 function(http, observable, app, primus) {
+    const POINT_VALUE = 314;
+
     var ctor = function() {
         this.displayName = "App";
+        this.startScreen = true;
         this.isConnected = false;
         this.messages = [];
         this.primus = null;
+        this.points = 0;
 
         this.createPrimus = function(url) {
             return new Primus(url);
         };
-
+        this.attached = function(view) {
+            var self = this;
+            $(document).keypress(function() {
+                if(self.startScreen === true) {
+                    self.startScreen = false;
+                }
+            });
+        };
         this.activate = function() {
             // the router's activator calls this function and waits for it to complete before proceeding
             if(this.primus === null || this.primus.online !== true) {
@@ -43,6 +54,9 @@ function(http, observable, app, primus) {
                     if (data.messageType) {
                         switch (data.messageType) {
                         case "hit":
+                            if(this.startScreen === false) {
+                                
+                            }
                         }
                     } else {
                         console.log(JSON.stringify(data));

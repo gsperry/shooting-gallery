@@ -30,6 +30,10 @@ function setupPrimus(primus) {
 
 function hit(name) {
     return new Promise(function(fulfill, reject) {
+        notify({
+            messageType: "hit",
+            name: name
+        });
         fulfill();
     });
 }

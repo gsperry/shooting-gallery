@@ -1,16 +1,16 @@
 <!-- start of game -->
-    <div class="startScreen">
+    <div class="startScreen" data-bind="visible: startScreen">
 		 <video playsinline autoplay="true" loop="true" poster="logo.png" id="bgvid">
 			 <source src="Halloween-2017-start-8bit.mp4" type="video/mp4">
 		</video> 
 	</div>
 <!-- background of points -->
-   <div class="gameStart">
+   <div class="gameStart" data-bind="visible: !startScreen">
 		<video playsinline autoplay="true" loop="true" poster="logo.png" id="bgvid2">
 			 <source src="Halloween-2017-HudBg-8bit.mp4" type="video/mp4">
 		</video>
 		<div class="arcadePoints">
 			<small>points</small>
-			<p>200</p>
+			<p data-bind="text: points"></p>
 		</div>
 	</div>
