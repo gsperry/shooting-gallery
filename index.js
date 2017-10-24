@@ -1,7 +1,5 @@
 /* global __dirname, require, process */
 "use strict";
-const SERVO_UP = 800;
-const SERVO_DOWN = 9000;
 const INTERVAL = 1500;
 
 let logger = require("winston");
@@ -61,7 +59,7 @@ if(config.get("shoot.useHardware") === true) {
             targetManager.targets.forEach(function(t) {
                 let target = t;
                 target.active = false;
-                setupServos.push(servos.write(target.channel, SERVO_DOWN));
+                setupServos.push(servos.write(target.channel, target.down));
                 target.trigger = Gpio(target.pin, {
                     mode: Gpio.INPUT,
                     pullUpDown: Gpio.PUD_DOWN,
@@ -70,7 +68,7 @@ if(config.get("shoot.useHardware") === true) {
                 target.trigger.on("interrupt", function(level) {
                     logger.info("Hit on target: " + target.name);
                     if(target.active === true && level === 0) {
-                        servos.write(target.channel, SERVO_DOWN).then(function() {
+                        servos.write(target.channel, target.down).then(function() {
                             wsApi.hit(target.name).then(function() {
                                 target.active = false;
                             });
@@ -85,7 +83,7 @@ if(config.get("shoot.useHardware") === true) {
     function activateTarget() {
         let target = targetManager.targets[Math.floor(Math.random() * targetManager.targets.length)];
         if(target.active === false) {
-            servos.write(target.channel, SERVO_UP).then(function() {
+            servos.write(target.channel, target.up).then(function() {
                 target.active = true;
                 setTimeout(activateTarget, INTERVAL);
             });

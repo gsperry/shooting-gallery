@@ -2,17 +2,23 @@ shoot:
     useHardware: false
     targets:
         - name: Groot
-          pin: 5
-          channel: 0x2
-        - name: Red
-          pin: 4
-          channel: 0x1
-        - name: StarLord
           pin: 6
-          channel: 0x3
+          channel: 0x0
+          up: 1312
+          down: 64
+        - name: Drax
+          pin: 13
+          channel: 0x2
+          up: 2272
+          down: 1312
+        - name: StarLord
+          pin: 5
+          channel: 0x1
+          up: 1568
+          down: 704
         - name: Green
           pin: 7
-          channel: 0x0
+          channel: 0x5
     log:
         level: debug
         levels: 
