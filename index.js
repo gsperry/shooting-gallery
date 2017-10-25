@@ -93,4 +93,12 @@ if(config.get("shoot.useHardware") === true) {
     }
 }
 
+function test() {
+    wsApi.hit("groot").then(function() {
+        setTimeout(function() {
+            test();
+        }, 1000);
+    });
+}
 
+test();
