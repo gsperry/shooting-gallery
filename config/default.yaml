@@ -6,6 +6,7 @@ shoot:
           channel: 0x0
           up: 1312
           down: 64
+          updown: up
         - name: Drax
           pin: 13
           channel: 0x2

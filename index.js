@@ -62,7 +62,7 @@ if(config.get("shoot.useHardware") === true) {
                 setupServos.push(servos.write(target.channel, target.down));
                 target.trigger = Gpio(target.pin, {
                     mode: Gpio.INPUT,
-                    pullUpDown: Gpio.PUD_DOWN,
+                    pullUpDown: (target.updown === "down") ? Gpio.PUD_DOWN : Gpio.PUD_UP,
                     edge: Gpio.EITHER_EDGE
                 });
                 target.trigger.on("interrupt", function(level) {
