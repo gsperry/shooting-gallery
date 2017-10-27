@@ -1357,6 +1357,15 @@ video#bgvid2 {
 	
 }
 
+.startScreen{
+	background: url('../Halloween-2017-start-8bit.gif')no-repeat center center fixed; 
+  	background-size: cover; 
+}
+.gameStart{
+	background: url('../Halloween-2017-HudBg-8bit_sm-2.gif')no-repeat center center fixed; 
+  	background-size: cover; 
+}
+
 .arcadePoints {
 	padding: 25px 25px 0px;
 	position: absolute;

@@ -1,16 +1,26 @@
 <!-- start of game -->
-    <div class="startScreen" data-bind="visible: startScreen">
-		 <video playsinline autoplay="true" loop="true" poster="logo.png" id="bgvid">
-			 <source src="Halloween-2017-start-8bit_sm.mp4" type="video/mp4">
-		</video> 
+   
+	<div class="startScreen" data-bind="visible: startScreen">
+		<!--  <video playsinline autoplay="true" loop="true" poster="logo.png" id="bgvid">
+			 <source src="Halloween-2017-start-8bit.gif" type="video/mp4">
+		</video> -->
+		<audio autoplay loop>
+			  <source src="Halloween-2017-start-8bit_sm-sound.mp3">
+		</audio>
 	</div>
+
 <!-- background of points -->
-   <div class="gameStart" data-bind="visible: !startScreen">
-		<video playsinline autoplay="true" loop="true" poster="logo.png" id="bgvid2">
-			 <source src="Halloween-2017-HudBg-8bit_sm.mp4" type="video/mp4">
-		</video>
+   
+	<div class="gameStart" data-bind="visible: !startScreen">
+		<!--<video playsinline autoplay="true" loop="true" poster="logo.png" id="bgvid2">
+			 <source src="Halloween-2017-HudBg-8bit_sm.gif" type="video/mp4">
+		</video>-->
+		<audio autoplay loop>
+			  <source src="Halloween-2017-HudBg-8bit_sm-sound.mp3">
+		</audio>
 		<div class="arcadePoints">
 			<small>points</small>
 			<p data-bind="text: points"></p>
 		</div>
 	</div>
+	
