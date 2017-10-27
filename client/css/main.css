@@ -937,8 +937,7 @@ body {
 	font-family: 'Raleway', Arial, sans-serif;
 	overflow: hidden;
 	/*overflow-y: scroll;*/
-	min-height: 590px;
-	
+	height: 100%;
 }
 
 a {
@@ -1357,6 +1356,20 @@ video#bgvid2 {
 	
 }
 
+.startScreen{
+	background: url('/Halloween-2017-start-8bit.gif')no-repeat center center fixed;
+	background-size: cover;
+	z-index: 10;
+	height: 100%;
+	display: block;
+}
+.gameStart{
+	background: url('/Halloween-2017-HudBg-8bit_sm-2.gif')no-repeat center center fixed; 
+	  background-size: cover;
+	  height: 100%;
+	  display: block; 
+}
+
 .arcadePoints {
 	padding: 25px 25px 0px;
 	position: absolute;
@@ -1386,4 +1399,8 @@ video#bgvid2 {
   to {
     text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #FFDD1B, 0 0 35px #FFDD1B, 0 0 40px #FFDD1B, 0 0 50px #FFDD1B, 0 0 75px #FFDD1B;
   }
+}
+
+.durandal-wrapper, #applicationHost {
+	height:100%;
 }
