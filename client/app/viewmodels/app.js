@@ -1,10 +1,9 @@
 /* eslint no-console: "off" */
 define(["plugins/http", "plugins/observable", "durandal/app", "primus"],
 function(http, observable, app, primus) {
-    const POINT_VALUE = 314;
-
+    const HIT_VALUE = 314;
+    const GAME_TIME = 60000;
     var ctor = function() {
-        this.displayName = "App";
         this.startScreen = true;
         this.isConnected = false;
         this.messages = [];
@@ -14,14 +13,20 @@ function(http, observable, app, primus) {
         this.createPrimus = function(url) {
             return new Primus(url);
         };
-        this.attached = function(view) {
+        this.attached = function (view) {
             var self = this;
             $(document).keypress(function() {
                 if(self.startScreen === true) {
+                    self.points = 0;
                     self.startScreen = false;
+                    setTimeout(function() {
+                        //Display score then...
+                        self.startScreen = true;
+                    }, GAME_TIME);
                 }
             });
-        };
+        }
+
         this.activate = function() {
             // the router's activator calls this function and waits for it to complete before proceeding
             if(this.primus === null || this.primus.online !== true) {
@@ -55,7 +60,7 @@ function(http, observable, app, primus) {
                         switch (data.messageType) {
                         case "hit":
                             if(this.startScreen === false) {
-                                
+                                this.points += HIT_VALUE;
                             }
                         }
                     } else {

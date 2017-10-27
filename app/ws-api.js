@@ -43,7 +43,6 @@ function hit(name) {
  * @param {Message} data - object to send to sparks.
  */
 function notify(data) {
-    let sparks = [];
     sparks.forEach(function(spark) {
         spark.write(data);
     });

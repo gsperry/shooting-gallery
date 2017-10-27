@@ -100,5 +100,3 @@ if(config.get("shoot.useHardware") === true) {
         }
     }
 }
-
-
