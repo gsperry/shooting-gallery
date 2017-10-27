@@ -59,15 +59,23 @@ if(config.get("shoot.useHardware") === true) {
             targetManager.targets.forEach(function(t) {
                 let target = t;
                 target.active = false;
+                target.hits = 0;
                 setupServos.push(servos.write(target.channel, target.down));
                 target.trigger = Gpio(target.pin, {
                     mode: Gpio.INPUT,
                     pullUpDown: (target.updown === "down") ? Gpio.PUD_DOWN : Gpio.PUD_UP,
                     edge: Gpio.EITHER_EDGE
                 });
+                logger.info("Target " + target.name + " on pin " + target.pin + " pull " + target.updown);
                 target.trigger.on("interrupt", function(level) {
-                    logger.info("Hit on target: " + target.name);
+                    logger.info("Hit level " + level + " on target: " + target.name + " hit count: " + target.hits);
                     if(target.active === true && level === 0) {
+                        target.hits += 1;
+                        setTimeout(function() {
+                            target.hits -=1;
+                        }, 200);
+                    }
+                    if(target.hits > 5) {
                         servos.write(target.channel, target.down).then(function() {
                             wsApi.hit(target.name).then(function() {
                                 target.active = false;
