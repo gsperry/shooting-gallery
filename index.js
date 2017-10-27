@@ -75,7 +75,7 @@ if(config.get("shoot.useHardware") === true) {
                             target.hits -=1;
                         }, 200);
                     }
-                    if(target.hits > 5) {
+                    if(target.hits >= target.maxhits) {
                         servos.write(target.channel, target.down).then(function() {
                             wsApi.hit(target.name).then(function() {
                                 target.active = false;
