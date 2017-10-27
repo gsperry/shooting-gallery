@@ -4,24 +4,36 @@ shoot:
         - name: Groot
           pin: 19
           updown: up
-          #pin: 21
-          #updown: up
+          channel: 0x0
+          up: 4932
+          down: 2096
+        - name: GrootLaser
+          pin: 12
+          updown: down
           channel: 0x0
           up: 4932
           down: 2096
         - name: Drax
           pin: 13
           updown: up
-          #pin: 26
-          #updown: up
+          channel: 0x2
+          up: 5248
+          down: 8960
+        - name: DraxLaser
+          pin: 16
+          updown: down
           channel: 0x2
           up: 5248
           down: 8960
         - name: StarLord
           pin: 6
           updown: up
-          #pin: 16
-          #updown: up
+          channel: 0x1
+          up: 6084
+          down: 2816
+        - name: StarLordLaser
+          pin: 21
+          updown: down
           channel: 0x1
           up: 6084
           down: 2816
